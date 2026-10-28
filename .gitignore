@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project-specific
+data/
+*.zip
+*.parquet
+*.npy
+*.mp4
+*.pt
+*.pth
+kaggle.json

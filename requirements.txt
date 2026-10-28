@@ -1,0 +1,12 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+torch==2.14.1+cpu
+mediapipe==1.1.1
+opencv-python==5.0.0.93
+numpy==2.4.6
+pandas==3.0.6
+pyarrow==26.0.0
+matplotlib==3.11.2
+pytest==9.1.1
+jupyter==1.1.1
+kaggle==2.2.4
