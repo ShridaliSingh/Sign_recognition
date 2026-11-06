@@ -12,3 +12,14 @@ Accuracy = top-1 on the validation signers unless stated otherwise.
   Val loss lowest at epoch 9 (3.30), then flat/noisy while train loss kept falling.
 - Notes: Pipeline end-to-end verified (chance = 0.4%). Large train/val gap suggests overfitting
   to training signers. Next: augmentation, then transformer.
+
+## Exp 2: Conv baseline + augmentation
+- Same as Exp 1, but training set augmented: speed x0.8-1.2, scale x0.9-1.1, rotation ±10° (x-y plane).
+  Val/test never augmented. 21 s/epoch.
+- Result: best val acc 41.5% (epoch 13), vs 41.8% in Exp 1, no measurable difference.
+  Train acc 57% at epoch 15 (vs 61%); gap shrank ~22 -> ~18 points, but via lower train acc, not higher val acc.
+  Lowest val loss 3.31 (epoch 10). Val loss zig-zags between epochs -> possibly lr too high.
+- Interpretation: model capacity is the bottleneck (only 61% train acc without aug), so a regularizer
+  like augmentation has little to fix. Train acc still rising at epoch 15. Keep augmentation on;
+  revisit with a stronger model and longer training.
+- Next: transformer encoder, with lr schedule.
