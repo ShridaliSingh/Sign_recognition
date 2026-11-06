@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import Dataset
 
 MAX_LEN = 128
+N_FLAGS = 2
 
 
 def load_cache(cache_dir, label_map_path):
@@ -26,13 +27,28 @@ def resample(x, max_len=MAX_LEN):
     return x[idx]
 
 
+def augment(x, rng):
+    T = len(x)
+    new_T = max(1, int(round(T / rng.uniform(0.8, 1.2))))
+    x = x[np.linspace(0, T - 1, new_T).round().astype(int)]
+
+    n_vec = (x.shape[1] - N_FLAGS) // 3
+    vec = x[:, :n_vec * 3].reshape(len(x), n_vec, 3) * rng.uniform(0.9, 1.1)
+    angle = np.deg2rad(rng.uniform(-10, 10))
+    c, s = np.cos(angle), np.sin(angle)
+    px, py = vec[..., 0].copy(), vec[..., 1].copy()
+    vec[..., 0] = c * px - s * py
+    vec[..., 1] = s * px + c * py
+    return np.concatenate([vec.reshape(len(x), -1), x[:, n_vec * 3:]], axis=1).astype(np.float32)
+
 class SignDataset(Dataset):
-    def __init__(self, feats, offsets, lengths, labels, indices):
+    def __init__(self, feats, offsets, lengths, labels, indices, augment=False):
         self.feats = feats
         self.offsets = offsets
         self.lengths = lengths
         self.labels = labels
         self.indices = indices
+        self.augment = augment
 
     def __len__(self):
         return len(self.indices)
@@ -41,6 +57,8 @@ class SignDataset(Dataset):
         j = self.indices[i]
         start = self.offsets[j]
         x = self.feats[start:start + self.lengths[j]].astype(np.float32)
+        if self.augment:
+            x = augment(x, np.random.default_rng())
         x = resample(x)
         return torch.from_numpy(x), int(self.labels[j])
 
