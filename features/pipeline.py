@@ -47,8 +47,11 @@ def build_features(norm):
     feats = np.concatenate([norm.reshape(T, -1), rel.reshape(T, -1), flags], axis=1)
     return np.nan_to_num(feats, nan=0.0)
 
-def process_sequence(path):
-    sel = select_landmarks(load_sequence(path))
+def process_array(arr):
+    sel = select_landmarks(arr)
     sel, _ = make_right_dominant(sel)
     return build_features(normalize(sel))
 
+
+def process_sequence(path):
+    return process_array(load_sequence(path))

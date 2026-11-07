@@ -43,3 +43,7 @@ nose 1, forehead 10, chin 152, right eye 133, left eye 362, mouth 0
    both averaged over the whole sequence.
 5. Relational features from normalized coordinates.
 6. NaN -> 0; presence flags record missing hands.
+
+## Note
+Own extraction (extraction/extract.py) multiplies x and z by image width/height before
+features are computed, so coordinates are aspect-correct. Feature layout (320) unchanged.

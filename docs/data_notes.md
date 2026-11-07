@@ -30,3 +30,13 @@
   - Neidle, Opoku & Metaxas (2022), ASL Video Corpora & Sign Bank. arXiv:2201.07899.
   - Neidle, Opoku, Dimitriadis & Metaxas (2018), NEW Shared & Interconnected ASL Resources. LREC 2018 workshop, pp. 147-154.
 - DawnSignPress data has been withdrawn (no longer viewable or downloadable).
+
+## Own extraction (MediaPipe Tasks HolisticLandmarker)
+- Face output is 478 points (468 mesh + 10 iris); we keep 0-467 -> same layout as Kaggle (543/frame).
+  Verified by face-index plot on own video.
+- MediaPipe x, y are fractions of image width / height. For non-square video they are in different
+  units (16:9 webcam squeezed x by 9/16). Fix in extraction: x and z multiplied by width/height,
+  so all coordinates are in units of image height.
+- Kaggle landmarks have no such correction and their video sizes are unknown (mostly phone
+  portrait). Do not mix Kaggle and own-extracted data without accounting for this.
+- Speed: ~39 ms/frame on one process (laptop CPU), 15 fps sampling.
