@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-def run_epoch(model, loader, device, optimizer=None):
+def run_epoch(model, loader, device, optimizer=None, scheduler=None, clip=1.0):
     training = optimizer is not None
     model.train(training)
     loss_fn = nn.CrossEntropyLoss()
@@ -17,7 +17,10 @@ def run_epoch(model, loader, device, optimizer=None):
             if training:
                 optimizer.zero_grad()
                 loss.backward()
+                nn.utils.clip_grad_norm_(model.parameters(), clip)
                 optimizer.step()
+                if scheduler is not None:
+                    scheduler.step()
 
             total_loss += loss.item() * len(y)
             correct += (logits.argmax(dim=1) == y).sum().item()

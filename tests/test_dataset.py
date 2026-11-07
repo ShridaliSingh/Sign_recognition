@@ -1,5 +1,7 @@
 import numpy as np
 from training.dataset import augment
+import torch
+from training.models import SignTransformer
 
 
 def test_augment_keeps_flags_and_missing_hands():
@@ -11,3 +13,16 @@ def test_augment_keeps_flags_and_missing_hands():
     assert out.shape[1] == 320
     assert (out[:, 318:] == 1.0).all()
     assert (out[:, 30:60] == 0.0).all()
+
+def test_transformer_shape_and_padding_ignored():
+    torch.manual_seed(0)
+    model = SignTransformer().eval()
+    x = torch.randn(2, 20, 320)
+    mask = torch.ones(2, 20, dtype=torch.bool)
+    mask[1, 12:] = False
+    out = model(x, mask)
+    assert out.shape == (2, 250)
+
+    x2 = x.clone()
+    x2[1, 12:] = 99.0
+    assert torch.allclose(model(x2, mask)[1], out[1], atol=1e-5)
