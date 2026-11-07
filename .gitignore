@@ -228,3 +228,6 @@ data/
 *.pt
 *.pth
 kaggle.json
+
+models/
+

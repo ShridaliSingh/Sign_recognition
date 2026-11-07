@@ -3,9 +3,15 @@ import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
+from features.landmarks import DOM_HAND_BLOCK, NONDOM_HAND_BLOCK, N_POINTS
 
 MAX_LEN = 128
 N_FLAGS = 2
+REL_START = N_POINTS * 3
+HANDS = [
+    (slice(DOM_HAND_BLOCK.start * 3, DOM_HAND_BLOCK.stop * 3), slice(REL_START, REL_START + 18), REL_START + 36),
+    (slice(NONDOM_HAND_BLOCK.start * 3, NONDOM_HAND_BLOCK.stop * 3), slice(REL_START + 18, REL_START + 36), REL_START + 37),
+]
 
 
 def load_cache(cache_dir, label_map_path):
@@ -27,10 +33,15 @@ def resample(x, max_len=MAX_LEN):
     return x[idx]
 
 
-def augment(x, rng):
+def augment(x, rng, frame_drop=0.0, hand_drop=0.0):
     T = len(x)
     new_T = max(1, int(round(T / rng.uniform(0.8, 1.2))))
     x = x[np.linspace(0, T - 1, new_T).round().astype(int)]
+
+    if frame_drop > 0 and len(x) > 2:
+        keep = rng.random(len(x)) >= frame_drop
+        if keep.any():
+            x = x[keep]
 
     n_vec = (x.shape[1] - N_FLAGS) // 3
     vec = x[:, :n_vec * 3].reshape(len(x), n_vec, 3) * rng.uniform(0.9, 1.1)
@@ -39,16 +50,27 @@ def augment(x, rng):
     px, py = vec[..., 0].copy(), vec[..., 1].copy()
     vec[..., 0] = c * px - s * py
     vec[..., 1] = s * px + c * py
-    return np.concatenate([vec.reshape(len(x), -1), x[:, n_vec * 3:]], axis=1).astype(np.float32)
+    x = np.concatenate([vec.reshape(len(x), -1), x[:, n_vec * 3:]], axis=1).astype(np.float32)
+
+    if hand_drop > 0:
+        for cols, rel, flag in HANDS:
+            drop = (rng.random(len(x)) < hand_drop) & (x[:, flag] == 1)
+            x[drop, cols] = 0
+            x[drop, rel] = 0
+            x[drop, flag] = 0
+    return x
 
 class SignDataset(Dataset):
-    def __init__(self, feats, offsets, lengths, labels, indices, augment=False):
+    def __init__(self, feats, offsets, lengths, labels, indices,
+                augment=False, frame_drop=0.0, hand_drop=0.0):
         self.feats = feats
         self.offsets = offsets
         self.lengths = lengths
         self.labels = labels
         self.indices = indices
         self.augment = augment
+        self.frame_drop = frame_drop
+        self.hand_drop = hand_drop
 
     def __len__(self):
         return len(self.indices)
@@ -58,7 +80,7 @@ class SignDataset(Dataset):
         start = self.offsets[j]
         x = self.feats[start:start + self.lengths[j]].astype(np.float32)
         if self.augment:
-            x = augment(x, np.random.default_rng())
+            x = augment(x, np.random.default_rng(), self.frame_drop, self.hand_drop)
         x = resample(x)
         return torch.from_numpy(x), int(self.labels[j])
 

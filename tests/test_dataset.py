@@ -26,3 +26,13 @@ def test_transformer_shape_and_padding_ignored():
     x2 = x.clone()
     x2[1, 12:] = 99.0
     assert torch.allclose(model(x2, mask)[1], out[1], atol=1e-5)
+
+def test_hand_drop_looks_like_missing_hand():
+    rng = np.random.default_rng(1)
+    x = rng.normal(size=(200, 320)).astype(np.float32)
+    x[:, 318:] = 1.0
+    out = augment(x, rng, hand_drop=0.5)
+    dropped = out[:, 318] == 0
+    assert dropped.any()
+    assert (out[dropped, 27:90] == 0).all()
+    assert (out[dropped, 282:300] == 0).all()
