@@ -40,3 +40,14 @@
 - Kaggle landmarks have no such correction and their video sizes are unknown (mostly phone
   portrait). Do not mix Kaggle and own-extracted data without accounting for this.
 - Speed: ~39 ms/frame on one process (laptop CPU), 15 fps sampling.
+
+# ASL Citizen
+- Zip 45,924,134,223 bytes. 83,399 .mp4 in ASL_Citizen/videos/ (flat folder), named <id>-<SIGN>.mp4.
+- Official splits in ASL_Citizen/splits/{train,val,test}.csv.
+  Columns: Participant ID, Video file, Gloss, ASL-LEX Code. Use Gloss as label (file names differ,
+  e.g. "SOCCER 2.mp4" has gloss SOCCER2).
+- train 40,154 videos / 35 signers; val 10,304 / 6; test 32,941 / 11. Total 52 signers, 2,731 glosses.
+  No signer overlap between splits; all glosses in every split. ~15 training examples per gloss.
+- Licence (use.txt, Microsoft Research License): non-commercial research only; no distribution of
+  data or modifications (incl. extracted landmarks); personal data must be kept confidential and
+  deleted after research ends. Keep all derived data private (gitignored, private notebooks only).
